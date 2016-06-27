@@ -83,7 +83,7 @@ void checkGang(){
     levens -= 1;
     if(levens ==0)
     {
-      a = 4
+      a = 4;
       sprintf(dataString,"%02X",a); // convert a value to hexa 
       Serial.println(dataString);   // send the data
       Serial.println(dataString); 
@@ -96,7 +96,7 @@ void checkGang(){
   }
   }
 }
-
+}
 void pciSetup(byte pin)
 {
     *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
@@ -106,7 +106,7 @@ void pciSetup(byte pin)
 // Use one Routine to handle each group
  
 ISR (PCINT1_vect) // handle pin change interrupt for A0 to A5 here
- {
+{
    if(digitalRead(A2) == LOW)
    {
      a = 1;
@@ -143,6 +143,7 @@ ISR (PCINT1_vect) // handle pin change interrupt for A0 to A5 here
       bumperEnGang[2] = 1;
       totalScore+=7;
    } 
+ }
  }
 
 void boardPWM(int state)
