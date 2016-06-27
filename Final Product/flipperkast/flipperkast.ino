@@ -1,6 +1,6 @@
 // Install Pin change interrupt for a pin, can be called multiple times
 char dataString[50] = {0};
-int bumper[3] = {0,0,0};
+int bumperEnGang[5] = {0,0,0,0,0};
  int a =0; 
  int sendPoints =0;
  byte pinSelected = 0;
@@ -64,6 +64,39 @@ void calcScore()
   score[3] = totalScore % 1000 % 100 % 10;
   
 }
+
+void checkGang(){
+   // aangesloten op pin A0 & pin A1
+  int sensorValueScore = analogRead(A1);
+  int sensorValueLevens = analogRead(A0);
+  // als de bal voorbij rolt, is de value lager dan 800
+  if(bumperEnGang[3] == 0){
+  if(sensorValueScore <= 800){
+    totalScore += 7 ;
+    a=3;
+    bumperEnGang[3] = 1;
+  }
+
+  //als value lager is, dan komt de bal langs
+  if(bumperEnGang[4] == 0){
+  if(sensorValueLevens <= 1011){
+    levens -= 1;
+    if(levens ==0)
+    {
+      a = 4
+      sprintf(dataString,"%02X",a); // convert a value to hexa 
+      Serial.println(dataString);   // send the data
+      Serial.println(dataString); 
+      Serial.println(dataString); 
+      Serial.println(dataString); 
+    }
+    else{
+    bumperEnGang[4] = 1;
+    }
+  }
+  }
+}
+
 void pciSetup(byte pin)
 {
     *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
@@ -83,32 +116,35 @@ ISR (PCINT1_vect) // handle pin change interrupt for A0 to A5 here
       Serial.println(dataString);   // send the data 
       Serial.println(dataString);   // send the data
    }
-   if(digitalRead(A3) == LOW && bumper[0] == 0)
+   if(levens != 0){
+    
+   
+   if(digitalRead(A3) == LOW && bumperEnGang[0] == 0)
    {
       a =2;
       pinSelected = pinA3;
       sendPoints = 1;
-      bumper[0] = 1;
+      bumperEnGang[0] = 1;
       totalScore +=7;
    } 
-   if(digitalRead(A4) == LOW && bumper[1] == 0)
+   if(digitalRead(A4) == LOW && bumperEnGang[1] == 0)
    {
       a=2;
       pinSelected = pinA4;
       sendPoints = 1;
-      bumper[1] = 1;
+      bumperEnGang[1] = 1;
       totalScore+=7;
    } 
-   if(digitalRead(A5) == LOW && bumper[2] == 0)
+   if(digitalRead(A5) == LOW && bumperEnGang[2] == 0)
    {
       a=2;
       pinSelected = pinA5;
       sendPoints = 1;
-      bumper[2] = 1;
+      bumperEnGang[2] = 1;
       totalScore+=7;
    } 
  }
-  
+}
 void ledPWM(byte pin)
 {
 //  for(int i = 0; i<= 25; i++)
@@ -145,15 +181,15 @@ void ledPWM(byte pin)
 }
 void setValue()
 {
-   for(int i = 0; i<3; i++)
+   for(int i = 0; i<5; i++)
   {
-   if(bumper[i] > 0)
+   if(bumperEnGang[i] > 0)
    {
-    bumper[i]++; 
+    bumperEnGang[i]++; 
    }
-   if(bumper[i] ==25)
+   if(bumperEnGang[i] ==25)
     {
-     bumper[i] = 0;
+     bumperEnGang[i] = 0;
      pinSelected =0;
  
     } 
@@ -210,6 +246,7 @@ void loop() {
   if(levens > 0)
   {
   ledPWM(pinSelected);
+  checkGang();
  sprintf(dataString,"%02X",a); // convert a value to hexa 
   Serial.println(dataString);   // send the data
 //  delay(20);
