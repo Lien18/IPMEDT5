@@ -4,12 +4,13 @@ int bumperEnGang[5] = {0,0,0,0,0};
  int a =0; 
  int sendPoints =0;
  byte pinSelected = 0;
- byte pinA3 = 15;
- byte pinA4 = 16;
- byte pinA5 = 17;
+ byte pinA3 = 14;
+ byte pinA4 = 15;
+ byte pinA5 = 16;
  byte pinSend = 3;
  int levens = 0;
  int addScore = 0;
+ int beginGame = 0;
 int score[4] = {0, 0, 0, 0};
 int totalScore = 0;
 int theNumber[5]= {9, 10, 11, 12, 13};
@@ -97,17 +98,14 @@ void checkGang(){
   }
 }
 }
-void pciSetup(byte pin)
-{
-    *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));  // enable pin
-    PCIFR  |= bit (digitalPinToPCICRbit(pin)); // clear any outstanding interrupt
-    PCICR  |= bit (digitalPinToPCICRbit(pin)); // enable interrupt for the group
-}
 // Use one Routine to handle each group
- 
-ISR (PCINT1_vect) // handle pin change interrupt for A0 to A5 here
-{
-   if(digitalRead(A2) == LOW)
+void interruptButton()
+ {
+   if(beginGame == 0)
+   {
+    beginGame = 1; 
+   }
+   else
    {
      a = 1;
      levens = 3;
@@ -116,10 +114,13 @@ ISR (PCINT1_vect) // handle pin change interrupt for A0 to A5 here
       Serial.println(dataString);   // send the data 
       Serial.println(dataString);   // send the data
    }
+ }
+void interruptBumper()
+ {
    if(levens != 0){
     
    
-   if(digitalRead(A3) == LOW && bumperEnGang[0] == 0)
+   if(digitalRead(19) == LOW && bumperEnGang[0] == 0)
    {
       a =2;
       pinSelected = pinA3;
@@ -127,7 +128,7 @@ ISR (PCINT1_vect) // handle pin change interrupt for A0 to A5 here
       bumperEnGang[0] = 1;
       totalScore +=7;
    } 
-   if(digitalRead(A4) == LOW && bumperEnGang[1] == 0)
+   if(digitalRead(20) == LOW && bumperEnGang[1] == 0)
    {
       a=2;
       pinSelected = pinA4;
@@ -135,7 +136,7 @@ ISR (PCINT1_vect) // handle pin change interrupt for A0 to A5 here
       bumperEnGang[1] = 1;
       totalScore+=7;
    } 
-   if(digitalRead(A5) == LOW && bumperEnGang[2] == 0)
+   if(digitalRead(21) == LOW && bumperEnGang[2] == 0)
    {
       a=2;
       pinSelected = pinA5;
@@ -231,29 +232,24 @@ int i;
   pinMode(24, OUTPUT);
   pinMode(25, OUTPUT);
   pinMode(26, OUTPUT);
-  
+    pinMode(18, INPUT_PULLUP);
+    pinMode(19, INPUT_PULLUP);
+    pinMode(20, INPUT_PULLUP);
+    pinMode(21, INPUT_PULLUP);
    digitalWrite(9, 1);
   digitalWrite(10, 1);
   digitalWrite(11, 1);
   digitalWrite(12, 1);
   digitalWrite(13, 1);
+//  digitalWrite(28,
  
 // set pullups, if necessary
 
-  for (i=A0; i<=A5; i++)
-      digitalWrite(i,HIGH);
-  //sevenSegment segments
- 
-  pinMode(pinSend, OUTPUT); //outputq
-  pinMode(pinA3,OUTPUT);
-  pinMode(pinA4,OUTPUT);
-  pinMode(pinA5,OUTPUT);
-// enable interrupt for pin...
-  pciSetup(A2);//start button A2 = start buttons, A3 to A5 are bumpers
-  pciSetup(A3);
-  pciSetup(A4);
-  pciSetup(A5);
-  
+
+  attachInterrupt(digitalPinToInterrupt(18), interruptButton, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(19), interruptBumper, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(20), interruptBumper, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(21), interruptBumper, CHANGE);
   Serial.begin(9600);              //Starting serial communication
 }
  
@@ -263,7 +259,7 @@ void loop() {
   if(levens > 0)
   {
   ledPWM(pinSelected);
-  checkGang();
+//  checkGang();
   boardPWM(1);
  sprintf(dataString,"%02X",a); // convert a value to hexa 
   Serial.println(dataString);   // send the data
@@ -280,10 +276,10 @@ void loop() {
   }
   else
   {
-    digitalWrite(26, 1);
-    delay(600);
-    digitalWrite(26, 0);
-    delay(400);
+    digitalWrite(26, HIGH);
+    delay(1000);
+    digitalWrite(26, LOW);
+    delay(1000);
   }
   
 }
