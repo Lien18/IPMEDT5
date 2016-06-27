@@ -108,7 +108,16 @@ ISR (PCINT1_vect) // handle pin change interrupt for A0 to A5 here
       totalScore+=7;
    } 
  }
-  
+
+void boardPWM(int state)
+{
+
+    digitalWrite(22, state);
+    digitalWrite(23, state);
+    digitalWrite(24, state);
+    digitalWrite(25, state);
+    digitalWrite(26, state);
+}
 void ledPWM(byte pin)
 {
 //  for(int i = 0; i<= 25; i++)
@@ -178,6 +187,13 @@ int i;
   pinMode(11, OUTPUT);
   pinMode(12, OUTPUT);
   pinMode(13, OUTPUT);//levens
+
+  //Leds from the Board
+  pinMode(22, OUTPUT);
+  pinMode(23, OUTPUT);
+  pinMode(24, OUTPUT);
+  pinMode(25, OUTPUT);
+  pinMode(26, OUTPUT);
   
    digitalWrite(9, 1);
   digitalWrite(10, 1);
@@ -210,16 +226,26 @@ void loop() {
   if(levens > 0)
   {
   ledPWM(pinSelected);
+  boardPWM(1);
  sprintf(dataString,"%02X",a); // convert a value to hexa 
   Serial.println(dataString);   // send the data
 //  delay(20);
   a = 0;
   setValue();
   ledPWM(pinSelected);
+  boardPWM(0);
    calcScore();
    for(int i = 0; i <5; i++){
      sevenSegWrite(score[i],i);
    }
   delay(10);                  // give the loop some break
   }
+  else
+  {
+    digitalWrite(26, 1);
+    delay(600);
+    digitalWrite(26, 0);
+    delay(400);
+  }
+  
 }
